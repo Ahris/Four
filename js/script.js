@@ -1,6 +1,5 @@
 // possible error, need to catch in main
 // - invalid move, column is full
-// - 
 
 function GameState() {
     // Num representing pieces in board array
@@ -10,29 +9,25 @@ function GameState() {
     this.WIDTH    = 7;
     this.HEIGHT   = 6;
 
-    // Return Types
-    this.CONTINUE = 0;
-    this.GAMEOVER = 1;
-    this.STALEMATE = 2;
+    // Return types
+    this.STALEMATE   = -2; 
+    this.GAMEOVER    = -1;
+    this.CONTINUE    =  0;
+    this.INVALIDMOVE =  1; 
 
-    // Return ERROR Types
-    this.NOERROR = 0;
-    this.INVALIDMOVE = 1;
-
-    this.lastLevel = 4;
     this.lastStarter = true;
-    this.lastMove = lastMove;    
+    this.lastMove = {'x': -1, 'y': -1};    
 
-    this.board = new Array(WIDTH);
+    this.board         = new Array(this.WIDTH);
     this.currentPlayer = null;
-    this.winner = EMPTY;
+    this.winner        = this.EMPTY;
 
     // Setting up board array, setting all to empty
-    for (var x=0; x<WIDTH; x++) {
-        this.board[x] = new Array(HEIGHT);
+    for (var x = 0; x < this.WIDTH; x++) {
+        this.board[x] = new Array(this.HEIGHT);
 
-        for (var y=0; y<HEIGHT; y++)
-            this.board[x][y] = EMPTY;
+        for (var y = 0; y < this.HEIGHT; y++)
+            this.board[x][y] = this.EMPTY;
     }
 }
 
@@ -40,12 +35,12 @@ function GameState() {
 GameState.prototype.drawBoard = function(el) { 
     var str = "<div class='board'>";
 
-    for (var y = HEIGHT-1; y >= 0; y--) {
-        for (var x=0; x < WIDTH; x++) {
-            if (this.board[x][y] == EMPTY) {
+    for (var y = this.HEIGHT-1; y >= 0; y--) {
+        for (var x=0; x < this.WIDTH; x++) {
+            if (this.board[x][y] == this.EMPTY) {
                 str += "<span class='empty' column='" + x + "'>n</span>";
             }
-            else if (this.board[x][y] == PLAYER1) {
+            else if (this.board[x][y] == this.PLAYER1) {
                 // if (lastMove != null && lastMove == x) {
                 //  str += "<span class='lastMoveSign'>r</span>";
                 //  lastMove = null;
@@ -70,13 +65,13 @@ GameState.prototype.drawBoard = function(el) {
 
 
 GameState.prototype.switchPlayer = function() {
-    this.currentPlayer = (this.currentPlayer == PLAYER1) ? PLAYER2 : PLAYER1;
+    this.currentPlayer = (this.currentPlayer == this.PLAYER1) ? this.PLAYER2 : this.PLAYER1;
 };
 
 // Checks if a square is empty, which determines if a move is valid
 // returns boolean
 GameState.prototype.validMove = function(x,y) {
-    if ((x < WIDTH && x >= 0) && (y < HEIGHT && y >= 0)) {
+    if ((x < this.WIDTH && x >= 0) && (y < this.HEIGHT && y >= 0)) {
         if (this.board[x][y] == 0) {
             if (y == 0) {
                 return true;
@@ -95,9 +90,9 @@ GameState.prototype.validMove = function(x,y) {
 GameState.prototype.move = function(x) {
     var y = this.board[x].length;
 
-    if (validMove(x,y)) {
+    if (this.validMove(x,y)) {
         this.board[x][y] = this.currentPlayer;
-        this.lastMove = ['x' = x, 'y' = y];
+        this.lastMove = {'x': x, 'y': y};
         return true;
     } else {
         //When false, main method returns an error message telling the user the row is full
@@ -109,13 +104,13 @@ GameState.prototype.move = function(x) {
 // Check to see if the last move is a winning move
 // returns boolean
 GameState.prototype.findWinner = function() { 
-    var x = lastmove[x];
-    var y = lastmove[y];
+    var x = this.lastmove['x'];
+    var y = this.lastmove['y'];
     var curWinner = this.board[x][y];
     var curLength = 1;
 
-    for(int deltaX = -1; deltaX < 2; ++deltaX) {
-        for(int deltaY = -1; deltaY < 2; ++deltaY) {
+    for(var deltaX = -1; deltaX < 2; ++deltaX) {
+        for(var deltaY = -1; deltaY < 2; ++deltaY) {
 
             curLength = 1;  
 
@@ -160,9 +155,9 @@ GameState.prototype.findWinner = function() {
 // Simple check to see if the board is full without a winning sequence 
 // returns a boolean 
 GameState.prototype.staleMate = function() {
-    if(findWinner == false) {
-        for(int i = 0; i < WIDTH; ++i) { 
-            if (this.board[i].length != HEIGTH) return false;
+    if(!findWinner()) {
+        for(var i = 0; i < this.WIDTH; ++i) { 
+            if (this.board[i].length != this.HEIGHT) return false;
         }
         return true;
     }
@@ -174,7 +169,7 @@ GameState.prototype.staleMate = function() {
 // return 0 = cont normally
 //        1 = found winner
 //        2 = stalemate
-GameState.prototype.continue = function() {
+GameState.prototype.continueGame = function() {
     this.switchPlayer();
     if(this.findWinner()) {
         return this.GAMEOVER;
@@ -198,100 +193,126 @@ GameState.prototype.continue = function() {
 // }
 
 // Handles the error messages from WaitForClick
+// returns an interger
 // returns are same as they were in GameState::Continue, being passed up to main
-function turn(gs, player) {
-    gs.drawBoard(boardDiv);
+GameState.prototype.play = function() {
+    this.drawBoard($("#boardDiv"));
     
     // Error message comes from wait for click
-    switch(gs.waitForClick(boardDiv)) {
-        case 0: // No error??? FIXME
-            break;
-        case 1: // INVALID MOVE 
+    switch(this.waitForClick($("#boardDiv"))) {
+        case 1: 
+            return this.INVALIDMOVE;
             break;
     }
     
-    switch(gs.continue()) {
-        case 0: // Continue Normally
-            return gs.CONTINUE;
+    switch(this.continueGame()) {
+        case 0: 
+            return this.CONTINUE;
             break;
-        case 1: // Game over, found winner
-            return gs.GAMEOVER;
+        case 1: 
+            return this.GAMEOVER;
             break;
-        case 2: // Stalemate
-            return gs.STALEMATE;
+        case 2: 
+            return this.STALEMATE;
             break;
     }
 }
 
 //FIXME what is happening
-function waitForClick(outputEl) {
+GameState.prototype.waitForClick = function(outputEl) {
     outputEl.onclick = new Function("columnClick(this)");
 }
 
-function columnClick(outputEl) {
+GameState.prototype.columnClick = function(outputEl) {
     var el = window.event.srcElement; // FIXME is there a better way to do this? we can have listeners on the column elements on da page
 
     if (el.column) {
         var x = parseInt(el.column);
 
-        gs.move(x);
+        this.move(x);
 
-    // ------------------------------------------------------------- stopped here
-        outputEl.style.cursor = "wait";
+    //  outputEl.style.cursor = "wait";
         outputEl.onclick = null;
-        drawBoard(outputEl);
-        continueGame(x, depth, outputEl);
+        this.drawBoard(outputEl);
+        this.continueGame(); 
     }
 }
 
 
-var tmpOutputEl;
-function continueGame(column, depth, outputEl) {
-    var winner, x;
+//var tmpOutputEl;
+// function continueGame(column, depth, outputEl) {
+//     var winner, x;
 
-    winner = move(column);
+//     winner = move(column);
 
-    lastMove = column;
+//     lastMove = column;
     
-    drawBoard(outputEl);
+//     drawBoard(outputEl);
 
-    if (winner != EMPTY || isBoardFull()) {
-        finished(winner);
-        return;
-    }
+//     if (winner != EMPTY || isBoardFull()) {
+//         finished(winner);
+//         return;
+//     }
 
-    switchPlayer();
+//     switchPlayer();
 
-    if (gs.currentPlayer == PLAYER1) {
-        waitForClick(depth, outputEl);
-    }
-    else {
-        // the following trick is used so that the board is redrawn before the heavy miniMax is called
-        tmpOutputEl = outputEl;
-        window.setTimeout("lastMove = miniMax(" + depth + ", -100000, 100000, true).bestMove; continueGame(lastMove," + depth + ", tmpOutputEl)", 1);
-    }
+//     if (gs.currentPlayer == PLAYER1) {
+//         waitForClick(depth, outputEl);
+//     }
+//     else {
+//         // the following trick is used so that the board is redrawn before the heavy miniMax is called
+//         tmpOutputEl = outputEl;
+//         window.setTimeout("lastMove = miniMax(" + depth + ", -100000, 100000, true).bestMove; continueGame(lastMove," + depth + ", tmpOutputEl)", 1);
+//     }
+// }
+
+// function finished(who) {
+//     var res;
+//     if (who == EMPTY)
+//         res = "Game is draw";
+//     else if (who == PLAYER1)
+//         res = "Red wins";
+//     else
+//         res = "Yellow wins";
+
+//     var str = '<table cellspacing="0" cellpadding="0"><tr>\
+//                 <td class="title">Game result...</td>\
+//             </tr><tr><td>';
+//     str += res;
+//     str += '</td></tr><tr>\
+//                 <td valign="bottom" align="right"><button onclick="showDialogue(sStart())" onmousedown="window.event.cancelBubble = true">New Game</button>&nbsp;<button onclick="window.close()" onmousedown="window.event.cancelBubble = true">Quit</button>\
+//             </tr></table>';
+
+//     showDialogue(str);
+// }
+
+
+GameState.prototype.gameOver = function() {
+    // grey out the board with a light fade, and display "Player 'winner' Wins!"
+    // TODO
 }
 
-function finished(who) {
-    var res;
-    if (who == EMPTY)
-        res = "Game is draw";
-    else if (who == PLAYER1)
-        res = "Red wins";
-    else
-        res = "Yellow wins";
 
-    var str = '<table cellspacing="0" cellpadding="0"><tr>\
-                <td class="title">Game result...</td>\
-            </tr><tr><td>';
-    str += res;
-    str += '</td></tr><tr>\
-                <td valign="bottom" align="right"><button onclick="showDialogue(sStart())" onmousedown="window.event.cancelBubble = true">New Game</button>&nbsp;<button onclick="window.close()" onmousedown="window.event.cancelBubble = true">Quit</button>\
-            </tr></table>';
+function main() {  
+    var gs = new GameState(); 
+    var result = 0; //result of play
 
-    showDialogue(str);
+    gs.currentPlayer = gs.PLAYER1;
+    gs.drawBoard();
+
+     // FIXME is this comparison correct?
+    while(result == gs.CONTINUE) { 
+        result = gs.play();
+        switch(result) {
+            case 1: //Invalid Move 
+                // TODO display a little box telling the player that their move is invalid
+                break;       
+        }
+    }
+
+    gs.gameOver(); //we'll have to write this, will handle game over cleanup
 }
 
-window.onload = function() {gs = new GameState(WIDTH, HEIGHT);
-                            drawBoard(boardDiv);
-                           };
+window.onload = main();
+
+
