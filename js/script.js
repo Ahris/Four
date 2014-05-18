@@ -16,7 +16,7 @@ function GameState() {
     this.INVALIDMOVE =  1; 
 
     this.lastStarter = true;
-    this.lastMove = {'x': -1, 'y': -1};    
+    this.lastMove = {'x': '-1', 'y': '-1'};    
 
     this.board         = new Array(this.WIDTH);
     this.currentPlayer = null;
@@ -32,13 +32,13 @@ function GameState() {
 }
 
 // Displays the board
-GameState.prototype.drawBoard = function(el) { 
+GameState.prototype.drawBoard = function() { 
     var str = "<div class='board'>";
 
     for (var y = this.HEIGHT-1; y >= 0; y--) {
         for (var x=0; x < this.WIDTH; x++) {
             if (this.board[x][y] == this.EMPTY) {
-                str += "<span class='empty' column='" + x + "'>n</span>";
+                str += "<span class='empty' column='" + x + "'>_ </span>";
             }
             else if (this.board[x][y] == this.PLAYER1) {
                 // if (lastMove != null && lastMove == x) {
@@ -60,7 +60,7 @@ GameState.prototype.drawBoard = function(el) {
 
     str += "</div>";
 
-    el.innerHTML = str;
+    document.getElementById("boardDiv").innerHTML = str;
 };
 
 
@@ -92,7 +92,8 @@ GameState.prototype.move = function(x) {
 
     if (this.validMove(x,y)) {
         this.board[x][y] = this.currentPlayer;
-        this.lastMove = {'x': x, 'y': y};
+        this.lastMove = {'x': 'x', 'y': 'y'};
+        //[{ "x": x }, { "y": "valueN" }]
         return true;
     } else {
         //When false, main method returns an error message telling the user the row is full
@@ -104,8 +105,8 @@ GameState.prototype.move = function(x) {
 // Check to see if the last move is a winning move
 // returns boolean
 GameState.prototype.findWinner = function() { 
-    var x = this.lastmove['x'];
-    var y = this.lastmove['y'];
+    var x = parseInt(this.lastmove['x']);
+    var y = parseInt(this.lastmove['y']);
     var curWinner = this.board[x][y];
     var curLength = 1;
 
@@ -196,10 +197,10 @@ GameState.prototype.continueGame = function() {
 // returns an interger
 // returns are same as they were in GameState::Continue, being passed up to main
 GameState.prototype.play = function() {
-    this.drawBoard($("#boardDiv"));
+    this.drawBoard();
     
     // Error message comes from wait for click
-    switch(this.waitForClick($("#boardDiv"))) {
+    switch(this.waitForClick()) {
         case 1: 
             return this.INVALIDMOVE;
             break;
@@ -219,11 +220,11 @@ GameState.prototype.play = function() {
 }
 
 //FIXME what is happening
-GameState.prototype.waitForClick = function(outputEl) {
-    outputEl.onclick = new Function("columnClick(this)");
+GameState.prototype.waitForClick = function() {
+    document.getElementById("boardDiv").onclick = new Function("columnClick()");
 }
 
-GameState.prototype.columnClick = function(outputEl) {
+GameState.prototype.columnClick = function() {
     var el = window.event.srcElement; // FIXME is there a better way to do this? we can have listeners on the column elements on da page
 
     if (el.column) {
@@ -232,8 +233,8 @@ GameState.prototype.columnClick = function(outputEl) {
         this.move(x);
 
     //  outputEl.style.cursor = "wait";
-        outputEl.onclick = null;
-        this.drawBoard(outputEl);
+        document.getElementById("boardDiv").onclick = null;
+        this.drawBoard();
         this.continueGame(); 
     }
 }
