@@ -16,7 +16,7 @@ function GameState() {
     this.INVALIDMOVE =  1; 
 
     this.lastStarter = true;
-    this.lastMove = {'x': '-1', 'y': '-1'};    
+    this.lastMove = {x: -1, y: -1};    
 
     this.board         = new Array(this.WIDTH);
     this.currentPlayer = null;
@@ -87,12 +87,12 @@ GameState.prototype.validMove = function(x,y) {
 
 // Handles the players move
 // return boolean
-GameState.prototype.move = function(x) {
-    var y = this.board[x].length;
+GameState.prototype.move = function(xColIndex) {
+    var yRowIndex = this.board[x].length;
 
-    if (this.validMove(x,y)) {
+    if (this.validMove(xColIndex,yRowIndex)) {
         this.board[x][y] = this.currentPlayer;
-        this.lastMove = {'x': 'x', 'y': 'y'};
+        this.lastMove = {x: xColIndex, y: yRowIndex};
         //[{ "x": x }, { "y": "valueN" }]
         return true;
     } else {
@@ -105,8 +105,8 @@ GameState.prototype.move = function(x) {
 // Check to see if the last move is a winning move
 // returns boolean
 GameState.prototype.findWinner = function() { 
-    var x = parseInt(this.lastmove['x']);
-    var y = parseInt(this.lastmove['y']);
+    var x = this.lastMove.x;
+    var y = this.lastMove.y;
     var curWinner = this.board[x][y];
     var curLength = 1;
 
@@ -221,7 +221,7 @@ GameState.prototype.play = function() {
 
 //FIXME what is happening
 GameState.prototype.waitForClick = function() {
-    document.getElementById("boardDiv").onclick = new Function("columnClick()");
+    document.getElementById("boardDiv").onclick = new Function(this + ".columnClick()");
 }
 
 GameState.prototype.columnClick = function() {
@@ -315,4 +315,5 @@ function main() {
 }
 
 window.onload = main();
+
 
