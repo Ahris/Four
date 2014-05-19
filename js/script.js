@@ -385,7 +385,7 @@ function start(level, humanStarts) {
     dialogue.style.display = "none";
     // The number represent the search depth.
     // A large value => better computer => more calculations
-
+    
     drawBoard(boardDiv);
 
     if (humanStarts) {
