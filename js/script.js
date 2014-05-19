@@ -1,150 +1,77 @@
+// possible error, need to catch in main
+// - invalid move, column is full
+
 function GameState() {
     // Num representing pieces in board array
     this.EMPTY    = 0;
-    this.HUMAN    = 1;
-    this.COMPUTER = 2;
+    this.PLAYER1  = 1;
+    this.PLAYER2  = 2;
     this.WIDTH    = 7;
     this.HEIGHT   = 6;
 
-    this.lastLevel = 4;
+    // Return types
+    this.STALEMATE   = -2; 
+    this.GAMEOVER    = -1;
+    this.CONTINUE    =  0;
+    this.INVALIDMOVE =  1; 
+
     this.lastStarter = true;
-    this.lastMove = lastMove;    
-    this.searchSequence = new Array(3,4,2,5,1,6,0);   //ASK
-    this.board = new Array(WIDTH);
+    this.lastMove = {'x': '-1', 'y': '-1'};    
+
+    this.board         = new Array(this.WIDTH);
     this.currentPlayer = null;
-    //this.nextFree = new Array(WIDTH);               //ASK
-    this.winner = EMPTY;
+    this.winner        = this.EMPTY;
 
     // Setting up board array, setting all to empty
-    for (var x=0; x<WIDTH; x++) {
-        this.board[x] = new Array(HEIGHT);
+    for (var x = 0; x < this.WIDTH; x++) {
+        this.board[x] = new Array(this.HEIGHT);
 
-        for (var y=0; y<HEIGHT; y++)
-            this.board[x][y] = EMPTY;
+        for (var y = 0; y < this.HEIGHT; y++)
+            this.board[x][y] = this.EMPTY;
     }
-  
-    // // Sets next free to 0?
-    // for (var x=0; x<WIDTH; x++) {
-    //     this.nextFree[x] = 0;
-    // }
 }
 
-
-
-GameState.prototype.drawBoard = function(el) { 
+// Displays the board
+GameState.prototype.drawBoard = function() { 
     var str = "<div class='board'>";
 
-    for (var y = HEIGHT-1; y >= 0; y--) {
-        for (var x=0; x < WIDTH; x++) {
-            if (this.board[x][y] == EMPTY) {
-                str += "<span class='empty' column='" + x + "'>n</span>";
-			}
-            else if (this.board[x][y] == HUMAN) {
-				// if (lastMove != null && lastMove == x) {
-				// 	str += "<span class='lastMoveSign'>r</span>";
-				// 	lastMove = null;
-				// }
+    for (var y = this.HEIGHT-1; y >= 0; y--) {
+        for (var x=0; x < this.WIDTH; x++) {
+            if (this.board[x][y] == this.EMPTY) {
+                str += "<span class='empty' column='" + x + "'>_ </span>";
+            }
+            else if (this.board[x][y] == this.PLAYER1) {
+                // if (lastMove != null && lastMove == x) {
+                //  str += "<span class='lastMoveSign'>r</span>";
+                //  lastMove = null;
+                // }
                 str += "<span class='red' column='" + x + "'>n</span>";
-			}
+            }
             else {
-				// if (lastMove != null && lastMove == x) {
-				// 	str += "<span class='lastMoveSign'>r</span>";
-				// 	lastMove = null;
-				// }
+                // if (lastMove != null && lastMove == x) {
+                //  str += "<span class='lastMoveSign'>r</span>";
+                //  lastMove = null;
+                // }
                 str += "<span class='blue' column='" + x + "'>n</span>";
-			}
+            }
         }
         str += "<br>";
     }
 
     str += "</div>";
 
-    el.innerHTML = str;
+    document.getElementById("boardDiv").innerHTML = str;
 };
 
 
 GameState.prototype.switchPlayer = function() {
-    this.currentPlayer = (this.currentPlayer == HUMAN) ? COMPUTER : HUMAN;
+    this.currentPlayer = (this.currentPlayer == this.PLAYER1) ? this.PLAYER2 : this.PLAYER1;
 };
 
-
-//xDir/yDir: -1, 0 or 1
-// ASK
-// GameState.prototype.find = function(startX, startY, xDir, yDir) {
-//     var x,y;
-//     var opponent = (this.currentPlayer == HUMAN) ? COMPUTER : HUMAN;
-//     var res = new Array(7);
-
-//     for (var i=0; i<7; i++) {
-//         x = startX + (i-3)*xDir;
-//         y = startY + (i-3)*yDir;
-
-//         if (x < 0 || x > WIDTH-1 || y < 0 || y > HEIGHT-1)
-//             res[i] = opponent;
-//         else
-//             res[i] = this.board[x][y];
-//     }
-//     return res;
-// };
-
-// function howGood(seq) {
-//     var free1 = 0;
-//     var free2 = 0;
-//     var markers = 0;
-
-//     // Look to the left
-//     for (var i=2; i>=0; i--) {
-//         if (seq[i] == gs.currentPlayer && free1 >= 1)
-//             break;
-//         else if (seq[i] == gs.currentPlayer)
-//             markers++;
-//         else if (seq[i] == EMPTY)
-//             free1++;
-//         else
-//             break;
-//     }
-
-//     // Look to the right
-//     for (var i=4; i<=6; i++) {
-//         if (seq[i] == gs.currentPlayer && free2 >= 1)
-//             break;
-//         else if (seq[i] == gs.currentPlayer)
-//             markers++;
-//         else if (seq[i] == EMPTY)
-//             free2++;
-//         else
-//             break;
-//     }
-
-//     // Calculate how good the sequence is
-//     if (markers + 1 >= 4)
-//         return 10000;
-//     else if (markers + 1 == 3 && free1 >= 1 && free2 >= 1)
-//         return 150;
-//     else if (markers + 1 == 3 && ((free1 >= 1 && free2 == 0) || (free1 == 0 && free2 >= 1)))
-//         return 100;
-//     else if (markers + 1 == 2 && free1 >= 1 && free2 >= 1)
-//         return 30
-//     else if (markers + 1 == 2 && ((free1 >= 2 && free2 == 0) || (free1 == 0 && free2 >= 2)))
-//         return 30;
-//     else
-//         return 0;
-
-// }
-
-
-
-// function findWinner(x,y) {
-//     if (evaluate(x,y) >= 10000) {
-//         return gs.currentPlayer;
-//     }
-//     else
-//         return EMPTY;
-// }
-
 // Checks if a square is empty, which determines if a move is valid
+// returns boolean
 GameState.prototype.validMove = function(x,y) {
-    if ((x < WIDTH && x >= 0) && (y < HEIGHT && y >= 0)) {
+    if ((x < this.WIDTH && x >= 0) && (y < this.HEIGHT && y >= 0)) {
         if (this.board[x][y] == 0) {
             if (y == 0) {
                 return true;
@@ -159,12 +86,14 @@ GameState.prototype.validMove = function(x,y) {
 
 
 // Handles the players move
+// return boolean
 GameState.prototype.move = function(x) {
     var y = this.board[x].length;
 
-    if (validMove(x,y)) {
+    if (this.validMove(x,y)) {
         this.board[x][y] = this.currentPlayer;
-        this.lastMove = ['x' = x, 'y' = y];
+        this.lastMove = {'x': 'x', 'y': 'y'};
+        //[{ "x": x }, { "y": "valueN" }]
         return true;
     } else {
         //When false, main method returns an error message telling the user the row is full
@@ -174,14 +103,15 @@ GameState.prototype.move = function(x) {
 
 
 // Check to see if the last move is a winning move
+// returns boolean
 GameState.prototype.findWinner = function() { 
-    var x = lastmove[x];
-    var y = lastmove[y];
+    var x = parseInt(this.lastmove['x']);
+    var y = parseInt(this.lastmove['y']);
     var curWinner = this.board[x][y];
     var curLength = 1;
 
-    for(int deltaX = -1; deltaX < 2; ++deltaX) {
-        for(int deltaY = -1; deltaY < 2; ++deltaY) {
+    for(var deltaX = -1; deltaX < 2; ++deltaX) {
+        for(var deltaY = -1; deltaY < 2; ++deltaY) {
 
             curLength = 1;  
 
@@ -213,7 +143,10 @@ GameState.prototype.findWinner = function() {
                     curX -= deltaX;
                     curY -= deltaY; 
                 }
-                if (curLength == 4) return true;
+                if (curLength == 4) {
+                    this.winner = curWinner;
+                    return true;
+                }
             }
         }
     }
@@ -221,33 +154,32 @@ GameState.prototype.findWinner = function() {
 
 
 // Simple check to see if the board is full without a winning sequence 
+// returns a boolean 
 GameState.prototype.staleMate = function() {
-    if(findWinner == false) {
-        for(int i = 0; i < WIDTH; ++i) { 
-            if (this.board[i].length != HEIGTH) return false;
+    if(!findWinner()) {
+        for(var i = 0; i < this.WIDTH; ++i) { 
+            if (this.board[i].length != this.HEIGHT) return false;
         }
         return true;
     }
     return false;
 }
 
-
-// function move(x) {
-//     var y;
-
-//     if (gs.nextFree[x] < HEIGHT) {
-//         y = gs.nextFree[x];
-//         gs.nextFree[x]++;
-//         gs.board[x][y] = gs.currentPlayer;
-//     }
-//     else {
-//         alert("This row is full!");
-//     }
-
-//     return findWinner(x,y);
-// }
-
-
+// Continue method switches players, checks winner, and checks stalemate
+// Gets called after the wait for turn method finds a executes a turn
+// return 0 = cont normally
+//        1 = found winner
+//        2 = stalemate
+GameState.prototype.continueGame = function() {
+    this.switchPlayer();
+    if(this.findWinner()) {
+        return this.GAMEOVER;
+    }
+    if(this.stalemate()) {
+        return this.STALEMATE;
+    }
+    return this.CONTINUE;
+}
 
 // function undoMove(x) {
 //     var y;
@@ -261,213 +193,126 @@ GameState.prototype.staleMate = function() {
 // //      alert("This row is empty");
 // }
 
-
-
-// function evaluate(x,y) {
-//     var total = 0;
-
-// //  if (gs.board[x][y] == gs.currentPlayer) {
-//         total = howGood(find(x, y, 1, 0)) +
-//                 howGood(find(x, y, 1, 1)) +
-//                 howGood(find(x, y, 1,-1)) +
-//                 howGood(find(x, y, 0, 1));
-// //  }
-
-//     return total;
-// }
-
-
-
-// function isBoardFull() {
-//     for (var x=0; x < WIDTH; x++)
-//         if (gs.nextFree[x] < HEIGHT)
-//             return false;
-
-//     return true;
-// }
-
-
-
-// function miniMax(depth, alpha, beta, maximize) {
-//     var tmp = new Object();
-//     var value, bestValue, x, bestMove;
-
-//     if (maximize)
-//         bestValue = alpha;
-//     else
-//         bestValue = beta;
-
-// //    for (x=0; x < WIDTH; x++) {
-// //	var firstLoop = true;
-// //	var middle = Math.floor(WIDTH/2);
-// //	for (x = middle; x != middle || firstLoop; x = (x+1) % WIDTH) {
-// 	for (var i=0; i<WIDTH; i++) {
-// 		x = searchSequence[i];
-// 		firstLoop = false;
-		
-//         if (maximize) {
-//             if (bestValue >= beta) {
-//                 tmp.bestValue = bestValue;
-
-//                 return tmp;
-//             }
-//         }
-//         else {
-//             if (bestValue <= alpha) {
-//                 tmp.bestValue = bestValue;
-
-//                 return tmp;
-//             }
-//         }
-
-//         if (gs.board[x][HEIGHT-1] == EMPTY) {
-
-//             gs.winner = move(x);
-
-//             if (isBoardFull()) {
-//                 value = evaluate(x, gs.nextFree[x]-1);
-//                 if (!maximize) value = -value;
-
-//                 tmp.bestMove = x;
-//                 tmp.bestValue = value;
-
-//                 undoMove(x);
-
-//                 return tmp;
-//             }
-
-//             if (depth == 0 || gs.winner != EMPTY) {
-//                 value = evaluate(x, gs.nextFree[x]-1);
-//                 if (!maximize) value = -value;
-//             }
-//             else {
-//                 switchPlayer();
-
-//                 if (maximize)
-//                     value = miniMax(depth-1, bestValue, beta, false).bestValue;
-//                 else
-//                     value = miniMax(depth-1, alpha, bestValue, true).bestValue;
-
-//                 switchPlayer();
-//             }
-
-//             if ((maximize && (value > bestValue)) || ((!maximize) && (value < bestValue))) {
-//                 bestValue = value;
-//                 bestMove = x;
-//             }
-
-//             undoMove(x);
-//         }
-//     }
-
-//     tmp.bestMove = bestMove;
-//     tmp.bestValue = bestValue;
-
-//     return tmp;
-// }
-
-
-// The rest is special funtions for handling the GUI and starting of the game
-
-function start(level, humanStarts) {
-    var lvl = parseInt(level);
-
-    if (isNaN(lvl) || lvl <= 0) {
-        showDialogue(sNaN);
-        return;
-    }
-
-	lastLevel = lvl;
-	lastStarter = !humanStarts;
-	
-    gs = new GameState(WIDTH, HEIGHT);
-
-    dialogue.style.display = "none";
-    // The number represent the search depth.
-    // A large value => better computer => more calculations
+// Handles the error messages from WaitForClick
+// returns an interger
+// returns are same as they were in GameState::Continue, being passed up to main
+GameState.prototype.play = function() {
+    this.drawBoard();
     
-    drawBoard(boardDiv);
-
-    if (humanStarts) {
-        gs.currentPlayer = HUMAN;
-        waitForClick(lvl, boardDiv);
+    // Error message comes from wait for click
+    switch(this.waitForClick()) {
+        case 1: 
+            return this.INVALIDMOVE;
+            break;
     }
-    else {
-        gs.currentPlayer = COMPUTER;
-		lastMove = miniMax(lvl, -100000, 100000, true).bestMove
-        continueGame(lastMove, lvl, boardDiv);
+    
+    switch(this.continueGame()) {
+        case 0: 
+            return this.CONTINUE;
+            break;
+        case 1: 
+            return this.GAMEOVER;
+            break;
+        case 2: 
+            return this.STALEMATE;
+            break;
     }
 }
 
-
-function waitForClick(depth, outputEl) {
-	outputEl.style.cursor = "hand";
-    outputEl.onclick = new Function("columnClick(" + depth + ", this)");
+//FIXME what is happening
+GameState.prototype.waitForClick = function() {
+    document.getElementById("boardDiv").onclick = new Function("columnClick()");
 }
 
-function columnClick(depth, outputEl) {
-    var el = window.event.srcElement;
+GameState.prototype.columnClick = function() {
+    var el = window.event.srcElement; // FIXME is there a better way to do this? we can have listeners on the column elements on da page
 
     if (el.column) {
         var x = parseInt(el.column);
 
-        if (gs.nextFree[x] > HEIGHT-1) return;
+        this.move(x);
 
-		outputEl.style.cursor = "wait";
-        outputEl.onclick = null;
-        drawBoard(outputEl);
-        continueGame(x, depth, outputEl);
+    //  outputEl.style.cursor = "wait";
+        document.getElementById("boardDiv").onclick = null;
+        this.drawBoard();
+        this.continueGame(); 
     }
 }
 
 
-var tmpOutputEl;
-function continueGame(column, depth, outputEl) {
-    var winner, x;
+//var tmpOutputEl;
+// function continueGame(column, depth, outputEl) {
+//     var winner, x;
 
-    winner = move(column);
+//     winner = move(column);
 
-	lastMove = column;
-	
-    drawBoard(outputEl);
+//     lastMove = column;
+    
+//     drawBoard(outputEl);
 
-    if (winner != EMPTY || isBoardFull()) {
-        finished(winner);
-        return;
-    }
+//     if (winner != EMPTY || isBoardFull()) {
+//         finished(winner);
+//         return;
+//     }
 
-    switchPlayer();
+//     switchPlayer();
 
-    if (gs.currentPlayer == HUMAN) {
-        waitForClick(depth, outputEl);
-    }
-    else {
-        // the following trick is used so that the board is redrawn before the heavy miniMax is called
-        tmpOutputEl = outputEl;
-		window.setTimeout("lastMove = miniMax(" + depth + ", -100000, 100000, true).bestMove; continueGame(lastMove," + depth + ", tmpOutputEl)", 1);
-    }
+//     if (gs.currentPlayer == PLAYER1) {
+//         waitForClick(depth, outputEl);
+//     }
+//     else {
+//         // the following trick is used so that the board is redrawn before the heavy miniMax is called
+//         tmpOutputEl = outputEl;
+//         window.setTimeout("lastMove = miniMax(" + depth + ", -100000, 100000, true).bestMove; continueGame(lastMove," + depth + ", tmpOutputEl)", 1);
+//     }
+// }
+
+// function finished(who) {
+//     var res;
+//     if (who == EMPTY)
+//         res = "Game is draw";
+//     else if (who == PLAYER1)
+//         res = "Red wins";
+//     else
+//         res = "Yellow wins";
+
+//     var str = '<table cellspacing="0" cellpadding="0"><tr>\
+//                 <td class="title">Game result...</td>\
+//             </tr><tr><td>';
+//     str += res;
+//     str += '</td></tr><tr>\
+//                 <td valign="bottom" align="right"><button onclick="showDialogue(sStart())" onmousedown="window.event.cancelBubble = true">New Game</button>&nbsp;<button onclick="window.close()" onmousedown="window.event.cancelBubble = true">Quit</button>\
+//             </tr></table>';
+
+//     showDialogue(str);
+// }
+
+
+GameState.prototype.gameOver = function() {
+    // grey out the board with a light fade, and display "Player 'winner' Wins!"
+    // TODO
 }
 
-function finished(who) {
-    var res;
-    if (who == EMPTY)
-        res = "Game is draw";
-    else if (who == HUMAN)
-        res = "Red wins";
-    else
-        res = "Yellow wins";
 
-    var str = '<table cellspacing="0" cellpadding="0"><tr>\
-                <td class="title">Game result...</td>\
-            </tr><tr><td>';
-    str += res;
-    str += '</td></tr><tr>\
-                <td valign="bottom" align="right"><button onclick="showDialogue(sStart())" onmousedown="window.event.cancelBubble = true">New Game</button>&nbsp;<button onclick="window.close()" onmousedown="window.event.cancelBubble = true">Quit</button>\
-            </tr></table>';
+function main() {  
+    var gs = new GameState(); 
+    var result = 0; //result of play
 
-    showDialogue(str);
+    gs.currentPlayer = gs.PLAYER1;
+    gs.drawBoard();
+
+     // FIXME is this comparison correct?
+    while(result == gs.CONTINUE) { 
+        result = gs.play();
+        switch(result) {
+            case 1: //Invalid Move 
+                // TODO display a little box telling the player that their move is invalid
+                break;       
+        }
+    }
+
+    gs.gameOver(); //we'll have to write this, will handle game over cleanup
 }
 
-window.onload = function() {gs = new GameState(WIDTH, HEIGHT);
-							drawBoard(boardDiv);
-                           };
+window.onload = main();
+
