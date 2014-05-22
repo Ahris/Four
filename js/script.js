@@ -1,5 +1,6 @@
 // possible error, need to catch in main
-// - invalid move, column is full
+// - combine the methods: cont and switch players in play
+// - check in four directions. direction is a set array. twp for loops? one loop for direction, one loop moving in both directions
 
 function GameState() {
     // Num representing pieces in board array
