@@ -17,7 +17,8 @@ function GameState() {
     this.INVALIDMOVE =  1; 
 
     this.lastStarter = true;
-    this.lastMove    = {x: -1, y: -1}; // no last move when you first start game   
+    this.lastMove    = {x: -1, y: -1}; // no last move when you first start game 
+    this.result       = this.CONTINUE;  
 
     this.board         = new Array(this.WIDTH);
     this.colLengths    = new Array(this.WIDTH);
@@ -36,7 +37,7 @@ function GameState() {
 
 // Displays the board
 GameState.prototype.drawBoard = function() { 
-    console.log("Got to drawBoard");
+console.log("Got to drawBoard");
     var str = "<div class='board'>";
 
     for (var y = this.HEIGHT-1; y >= 0; y--) {
@@ -60,21 +61,14 @@ GameState.prototype.drawBoard = function() {
 };
 
 
-GameState.prototype.switchPlayer = function() {
-    this.currentPlayer = (this.currentPlayer == this.PLAYER1) ? this.PLAYER2 : this.PLAYER1;
-};
 
 // Checks if a square is empty, which determines if a move is valid
 // returns boolean
 GameState.prototype.validMove = function(x,y) {
-    console.log("VALID MOVE");
-    console.log("x: " + x);
-    console.log("y: " + y);
+console.log("VALID MOVE " + "x: " + x + " y: " + y);
 
     if ((x < this.WIDTH && x >= 0) && (y < this.HEIGHT && y >= 0)) {
-        console.log("first if in valid move");
         if (this.board[x][y] == this.EMPTY) {   
-            console.log("second if in valid move");
             if (y == 0) {
                 return true;
             } 
@@ -90,15 +84,12 @@ GameState.prototype.validMove = function(x,y) {
 // Handles the players move
 // return boolean
 GameState.prototype.move = function(xColIndex) {
-    console.log("PARAM xColIndex " + xColIndex);
     var yRowIndex = this.colLengths[xColIndex];
 
     if (this.validMove(xColIndex,yRowIndex)) { 
-        console.log("Got a new move!!! Curplayer: " + this.currentPlayer + " x: " + xColIndex + " y: " + yRowIndex);
+console.log("Got a new move!!! Curplayer: " + this.currentPlayer + " x: " + xColIndex + " y: " + yRowIndex);
         this.board[xColIndex][yRowIndex] = this.currentPlayer;
-        console.log(this.board[xColIndex][yRowIndex] + " new piece holla");
         this.lastMove = {x: xColIndex, y: yRowIndex};
-        //[{ "x": x }, { "y": "valueN" }]   
         this.colLengths[xColIndex] += 1;
         return true;
     } else {
@@ -107,6 +98,15 @@ GameState.prototype.move = function(xColIndex) {
     }
 }
 
+// Checks that the cooridnates are within the board dimensions
+// and that piece at that location is equal to the player who made the last move
+GameState.prototype.validDirection = function(curX, curY, curWinner) {
+    if ((curX < this.WIDTH && curX >= 0) && (curY < this.HEIGHT && curY >= 0)) {
+        if (this.board[curX][curY] == curWinner) {                  
+                return true;
+        }   
+    }
+}
 
 // Check to see if the last move is a winning move
 // returns boolean
@@ -117,38 +117,49 @@ GameState.prototype.findWinner = function() {
     var curWinner;
 
     if(x >= 0 && y >= 0) {
-        curWinner = this.board[x][y];
-        for(var deltaX = -1; deltaX < 2; ++deltaX) {
-            for(var deltaY = -1; deltaY < 2; ++deltaY) {
+        curWinner = this.board[x][y]; // last move
+        for(var deltaX = -1; deltaX < 2; deltaX++) {
+            for(var deltaY = -1; deltaY < 2; deltaY++) {
                 curLength = 1;  
+                
+                var curX = x + deltaX;
+                var curY = y + deltaY;
+                var curNegX = x - deltaX;
+                var curNegY = y - deltaY;
+
+console.log("curX: "+ (x+deltaX) + " curY: " + (y+deltaY) + " BOARD: "+ this.board[x+deltaX][y+deltaY]);
 
                 if(deltaX == 0 && deltaY == 0) {
+console.log("SELF");
                     continue; // Don’t check self!   
-                } else if(this.board[x+deltaX][y+deltaY] == curWinner) {
+                } else if(this.validDirection(curX, curY, curWinner)) {
+console.log("CHECKED");
                     // Found a matching piece
                     // Check direction of deltaX, deltaY and -deltaX, -deltaY
-                    var curX = x + deltaX;
-                    var curY = y + deltaY;
-                    while(curX < this.WIDTH && curX > 0 && curY < this.HEIGHT && curY > 0) {
-                        if(this.board[curX][curY] == curWinner) {
-                            ++curLength;
-                        } else break;
+
+console.log("curX: " + curX + " curY: " + curY);
+                    while(this.validDirection(curX, curY, curWinner)) {
+                        ++curLength;
+console.log("Curlength " + curLength);
                         curX += deltaX;
                         curY += deltaY;
+console.log("found a similar piece near by");
                     }
 
-                    var curNegX = x - deltaX;
-                    var curNegY = y - deltaY;
-                    while(curNegX  < this.WIDTH && curNegX > 0 && curNegY < this.HEIGHT && curNegY > 0) {
-                        if(this.board[curNegX][curNegY ] == curWinner) {
+console.log("curNegX: " + curNegX + " curNegY: " + curNegY);
+                    while(this.validDirection(curNegX, curNegY, curWinner)) {
                             ++curLength;
-                        } else break;
-                        curX -= deltaX;
-                        curY -= deltaY; 
+console.log("Curlength " + curLength);
+                            curNegX -= deltaX;
+                            curNegY -= deltaY; 
+                            console.log("found a similar piece near by");
                     }
 
                     if (curLength == 4) {
+console.log("Curlength " + curLength);
+console.log("FOUDN 4 OF THE SAME PIECES");
                         this.winner = curWinner;
+                        this.gameOver();
                         return true;
                     }
                 }
@@ -163,29 +174,14 @@ GameState.prototype.findWinner = function() {
 // Simple check to see if the board is full without a winning sequence 
 // returns a boolean 
 GameState.prototype.stalemate = function() {
-    if(!this.findWinner()) {
-        for(var i = 0; i < this.WIDTH; ++i) { 
-            if (this.board[i].length != this.HEIGHT) return false;
+    if(this.winner == this.EMPTY) {
+        for(var i = 0; i < this.WIDTH; i++) { 
+            if (this.colLengths[i] != this.HEIGHT) return false;
         }
+        this.gameOver();
         return true;
     }
     return false;
-}
-
-// Continue method switches players, checks winner, and checks stalemate
-// Gets called after the wait for turn method finds a executes a turn
-// return 0 = cont normally
-//        1 = found winner
-//        2 = stalemate
-GameState.prototype.continueGame = function() {
-    this.switchPlayer();
-    if(this.findWinner()) {
-        return this.GAMEOVER;
-    }
-    if(this.stalemate()) {
-        return this.STALEMATE;
-    }
-    return this.CONTINUE;
 }
 
 // function undoMove(x) {
@@ -204,66 +200,49 @@ GameState.prototype.continueGame = function() {
 // returns an interger
 // returns are same as they were in GameState::Continue, being passed up to main
 GameState.prototype.play = function() {
-    this.drawBoard();
-    
-    switch(this.continueGame()) {
-        case 0: 
-            return this.CONTINUE;
-            break;
-        case 1: 
-            return this.GAMEOVER;
-            break;
-        case 2: 
-            return this.STALEMATE;
-            break;
-    }
+    this.currentPlayer = (this.currentPlayer == this.PLAYER1) ? this.PLAYER2 : this.PLAYER1;
+    document.getElementById("state").innerHTML = "Player " + this.currentPlayer;
+
+    this.findWinner();
+    this.stalemate();
 }
 
 GameState.prototype.columnClick = function() {
     var el = window.event.target; // FIXME is there a better way to do this? we can have listeners on the column elements on da page
-    console.log(el.className.split(" ")[1]);
+console.log(el.className.split(" ")[1]);
 
     if (el.className.split(" ")[1]) {
         var x = parseInt(el.className.split(" ")[1]);
-        console.log("number " + x);
         this.move(x);
 
     //  outputEl.style.cursor = "wait";
         document.getElementById("boardDiv").onclick = null;
         this.drawBoard();
-        this.continueGame(); 
+        this.result = this.play(); 
     }
 }
 
 GameState.prototype.gameOver = function() {
     // grey out the board with a light fade, and display "Player 'winner' Wins!"
     // TODO
+console.log("GAME OVER");
+    document.getElementById("state").innerHTML = "Player " + this.winner + " wins";
+
+    document.getElementById("boardDiv").removeEventListener("click", function(){
+        gs.columnClick();
+    }, false);
 }
 
 
 function main() {  
     var gs = new GameState(); 
-    var result = 0; // result of play
-
     gs.currentPlayer = gs.PLAYER1;
-    gs.drawBoard();
 
+    document.getElementById("state").innerHTML = "Player " + gs.currentPlayer;
+    gs.drawBoard();
     document.getElementById("boardDiv").addEventListener("click", function(){
         gs.columnClick();
     }, false);
-
-     // FIXME is this comparison correct?
-    while(result == gs.CONTINUE) {  
-        result = gs.play();
-        // switch(result) {
-        //     case 1: //Invalid Move 
-        //         // TODO display a little box telling the player that their move is invalid
-        //         break;       
-        // }
-    }
-    gs.gameOver(); //we'll have to write this, will handle game over cleanup
 }
 
 window.onload = main();
-
-
